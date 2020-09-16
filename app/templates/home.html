@@ -1,0 +1,10 @@
+<!--inherits the boilderplate code from layout.html-->
+{% extends "layout.html" %}
+<!-- Basically we are overriding the layout.html's block content block from posting what we want within the blocks-->
+{% block content %}
+    {% for post in posts %}   <!--start tag for jinja  -->
+        <h1>{{post.title}}</h1>   <!--anything expression within {{and }} will be outputted -->
+        <p> By {{post.author}} on {{post.date_posted}} </p>
+        <p> {{post.content}} </p>
+    {% endfor %}        <!--end tag for jinja  -->
+{% endblock content %}
