@@ -1,10 +1,10 @@
 from app import app_obj
-from flask import render_template
+from flask import render_template,url_for
 # render_template will look for the .html files you specified
 # under the templates folder. You have to name the templates folder exactly so
 # flask knows where to find them
 
-# assumes that we will be querying data from our database as dummy_data  
+# assumes that we will be querying data from our database as dummy_data
 dummy_data = [
     {
         'author': 'Max ong',
