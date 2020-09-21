@@ -1,4 +1,5 @@
 from app import app_obj
+
 from flask import render_template,url_for, flash, redirect
 from app.forms import RegistrationForm, LoginForm
 
@@ -7,6 +8,8 @@ from app.forms import RegistrationForm, LoginForm
 # flask knows where to find them
 
 # assumes that we will be querying data from our database as dummy_data
+
+
 dummy_data = [
     {
         'author': 'Max ong',
