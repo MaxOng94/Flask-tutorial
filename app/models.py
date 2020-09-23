@@ -1,8 +1,14 @@
-from app import db
+from app import db, login_manager
 from datetime import datetime
+from flask_login import UserMixin
 
 
-class User(db.Model): # what is db.Model?
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))  # makes sure the user_id is an int
+
+
+class User(db.Model, UserMixin): # what is db.Model?
     id = db.Column(db.Integer, primary_key = True)
 
     username = db.Column(db.String(20), unique = True, nullable =False)
@@ -11,7 +17,7 @@ class User(db.Model): # what is db.Model?
 
     email = db.Column(db.String(120), unique = True, nullable =False)
 
-    image_file = db.Column(db.String(20), unique = True, nullable =False, default = 'default.jpg')
+    image_file = db.Column(db.String(20), unique = True, nullable =False, default = 'images.jpg')
 
     password = db.Column(db.String(60), nullable=False)
     # hashing algorithm will hash the password into 60 chars, does not mean we want password to be 60 chars

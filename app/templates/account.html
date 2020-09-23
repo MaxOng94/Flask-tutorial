@@ -1,0 +1,65 @@
+{% extends "layout.html" %}
+{% block content %}
+    <div class="content-section">
+      <div class="media">
+        <img class="rounded-circle account-img" src={{ image_file }}> <!-- user's image -->
+        <div class="media-body text-truncate">
+          <h2 class="account-heading">{{current_user.username}}</h2>
+          <p class = "secondary-text">{{current_user.email}}</p>
+        </div>
+      </div>
+    </div>
+
+<!-- FORM HERE -->
+    <div class="content-section">
+    <form method="POST" action="" enctype = "multipart/form-data">       <!--use multipart/form-data when your form includes any <input type="file"> -->
+        {{ form.hidden_tag() }}
+            <fieldset class = "form-group">                           <!-- bootstrap class-->
+                <legend class = "border-bottom mb-4">Update Account</legend>
+                    <div class="form-group">
+                      {{form.username.label(class = "form-control-label")}}  <!-- bootstrap class-->
+                      {% if form.username.errors %}  <!--conditional statements if there are errors in form username-->
+                        {{ form.username(class = "form-control form-control-lg is-invalid")}} <!-- added in 'is-invalid', bootstrap's class-->
+                        <div class = 'invalid-feedback'>
+                            {% for error in form.username.errors %}
+                                <span>{{error}}</span>
+                            {% endfor %}
+                        </div>
+                      {% else %}
+                          {{form.username(class = "form-control form-control-lg")}}
+
+                      {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                      {{form.email.label(class = "form-control-label")}}  <!-- bootstrap class-->
+                      {% if form.email.errors %}  <!--conditional statements if there are errors in form username-->
+                        {{ form.email(class = "form-control form-control-lg is-invalid")}} <!-- added in 'is-invalid', bootstrap's class-->
+                        <div class = 'invalid-feedback'>
+                            {% for error in form.email.errors %}
+                                <span>{{error}}</span>
+                            {% endfor %}
+                        </div>
+                      {% else %}
+                          {{form.email(class = "form-control form-control-lg")}}
+                      {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        {{form.picture.label()}}
+                        {{form.picture(class = "form-control-file")}}   <!-- actual submitting picture bootstrap class-->
+                        {% if form.picture.errors %}
+                            {% for error in form.picture.errors %}
+                                <span class = "text-danger">{{error}}</span>
+                            {%endfor%}
+                        {% endif %}
+
+                    </div>
+                    <div class="form-group">
+                    {{form.submit(class = "btn btn-outline-info")}}
+                    </div>
+                </fieldset>
+
+    </form>
+    </div>
+{% endblock content %}
