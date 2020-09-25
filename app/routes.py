@@ -1,7 +1,6 @@
 from app import app_obj, db, bcrypt
-from flask import render_template,url_for, flash, redirect , request
-from app.forms import RegistrationForm, LoginForm, UpdateAccountForm
-from models import User
+from flask import render_template,url_for, flash, redirect , request, abort
+from forms import RegistrationForm, LoginForm, UpdateAccountForm, PostForm
 from PIL import Image
 # render_template will look for the .html files you specified
 # under the templates folder. You have to name the templates folder exactly so
@@ -9,31 +8,25 @@ from PIL import Image
 
 from flask_login import login_user,current_user, logout_user, login_required
 # assumes that we will be querying data from our database as dummy_data
-
+from datetime import datetime
 import secrets
 import os
-dummy_data = [
-    {
-        'author': 'Max ong',
-        'title' : 'Blog post 1',
-        'content': 'First post content',
-        'date_posted': 'April 20 2020'
-    },
-    {
-        'author': 'Max ong',
-        'title' : 'Blog post 1',
-        'content': 'First post content',
-        'date_posted': 'April 20 2020'
-    }
-]
+from models import User, Post
 
 
-
-
+# =====================
+# route for HOME PAGE
+"""
+1) HOME()
+2) ABOUT()
+3) REGISTER()
+"""
 @app_obj.route('/')
-@app_obj.route('/home')
+@app_obj.route('/home', methods = ["GET","POST"])
 def home():
-    return render_template('home.html', posts = dummy_data)
+    page = request.args.get('page', 1, type = int)          #  1 : the default page number, and type = int --> will throw in error if someone else throws in non-int for page number
+    posts = Post.query.order_by(Post.date_posted.desc()).paginate(page = page, per_page = 4)  # basically limiting 4 posts per page
+    return render_template('home.html', posts = posts)
 
 @app_obj.route('/about')
 def about():
@@ -57,6 +50,15 @@ def register():
         # bootstrap has different alert style for successes and errors
         return redirect(url_for("login"))
     return render_template("register.html", title = "Register", form = form )
+# ==========================
+
+
+# =====================
+# route for lOGIN PAGE
+"""
+1) LOGIN()
+2) LOGOUT()
+"""
 
 @app_obj.route('/login', methods = ["GET","POST"])
 def login():
@@ -74,11 +76,16 @@ def login():
             flash("Login unsuccessful. Please check email and password", 'danger') # bootstrap's class danger for error alert
     return render_template("login.html", title = "Login", form = form )
 
-
 @app_obj.route('/logout')
 def logout():
     logout_user()
     return redirect(url_for("home"))
+
+#===================================
+
+
+# =====================
+# route for ACCOUNT PAGE
 
 def save_picture(form_picture):
     random_hex = secrets.token_hex(8)        # randomize the image name of the picture so not to collide with existing pictures in our db
@@ -95,11 +102,9 @@ def save_picture(form_picture):
 
     return picture_fn
 
-
 @app_obj.route('/account', methods = ["GET","POST"])
 @login_required         # with this decorator, this means to access this view, users has to be logged in already
 def account():
-    image_file = url_for('static', filename = "profile_pics/" + current_user.image_file) # image file in the models module under User class. It is in the database
     form = UpdateAccountForm()
     if form.validate_on_submit():
         if form.picture.data:
@@ -113,4 +118,84 @@ def account():
     elif request.method == "GET":
         form.username.data = current_user.username
         form.email.data = current_user.email
+    image_file = url_for('static', filename = "profile_pics/" + current_user.image_file) # image file in the models module under User class. It is in the database
     return render_template("account.html", title = "Account", image_file = image_file, form = form)
+
+# ================================
+
+
+
+# ===================================
+# route for POST PAGE
+
+"""
+1) NEW_POST()
+2) POST()
+3) UPDATE() --> to update the post title and content
+    - added condition that ONLY author can update their own post
+4) DELETE_POST()
+    - added condition that ONLY author can update their own post
+    - a modal will pop up when authors want to delete their own posts
+5) USER_POSTS()
+    - to return only all the posts written by user
+"""
+@app_obj.route('/post/new', methods = ['GET','POST'])
+@login_required
+def new_post():
+    form = PostForm()
+    if form.validate_on_submit():
+        new_post = Post(title =form.title.data, content =form.content.data, author = current_user)
+        db.session.add(new_post)
+        db.session.commit()
+        flash(f"New post '{form.title.data}' created!", "success") # success category is a bootstrap class to use as variable
+        return redirect(url_for('home'))
+    return render_template("create_post.html", title = "New Post", form = form,
+                            legend = 'New Post')
+
+@app_obj.route('/post/<int:post_id>', methods = ['GET','POST'])
+def post(post_id):
+    post = Post.query.get_or_404(post_id)
+    return render_template('post.html', title = post.title, post = post)
+
+@app_obj.route('/post/<int:post_id>/update', methods = ['GET','POST'])
+@login_required
+def update(post_id):
+    form = PostForm()
+    post = Post.query.get_or_404(post_id)
+    if form.validate_on_submit():
+        post.title = form.title.data
+        post.content = form.content.data
+        db.session.commit()
+        flash(f"Your post '{form.title.data}' has been updated!", "success") # success category is a bootstrap class to use as variable
+        return redirect(url_for('post', post_id = post.id))
+    elif request.method == "GET":
+        form.title.data = post.title
+        form.content.data = post.content
+    return render_template('create_post.html', form = form, post = post,
+                            legend = 'Update Post')
+
+
+@app_obj.route('/post/<int:post_id>/delete', methods = ['POST'])
+@login_required
+def delete_post(post_id):
+    form = PostForm()
+    post = Post.query.get_or_404(post_id)
+    if post.author != current_user:
+        abort(403)
+    else:
+        db.session.delete(post)
+        db.session.commit()
+        flash(f"Your post '{form.title.data}' has been deleted!", "success") # success category is a bootstrap class to use as variable
+        return redirect(url_for('home'))
+    return render_template('create_post.html', form = form, post = post,
+                            legend = 'Update Post')
+
+
+@app_obj.route('/user/<string:username>', methods = ["GET","POST"])
+def user_posts(username):
+    page = request.args.get('page', 1, type = int)          #  1 : the default page number, and type = int --> will throw in error if someone else throws in non-int for page number
+    user = User.query.filter_by(username = username).first_or_404()
+    posts = Post.query.filter_by(author = user)\
+            .order_by(Post.date_posted.desc())\
+            .paginate(page = page, per_page = 4)  # basically limiting 4 posts per page
+    return render_template('user_posts.html', posts = posts, user = user)

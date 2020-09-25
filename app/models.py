@@ -17,12 +17,12 @@ class User(db.Model, UserMixin): # what is db.Model?
 
     email = db.Column(db.String(120), unique = True, nullable =False)
 
-    image_file = db.Column(db.String(20), unique = True, nullable =False, default = 'images.jpg')
+    image_file = db.Column(db.String(20), nullable =False, default = 'images.jpg')
 
     password = db.Column(db.String(60), nullable=False)
     # hashing algorithm will hash the password into 60 chars, does not mean we want password to be 60 chars
 
-    posts = db.relationship("Post", backref = "author", lazy =True)
+    posts = db.relationship("Post", backref ='author', lazy =True)
     # post attribute has a relationship to the Post model
     # backref --> similar to adding a column to Post model. So when we have a post, we can use the author
     # attribute to get user who created the post
@@ -38,11 +38,12 @@ class Post(db.Model):
 
     title = db.Column(db.String(100), nullable =False)
 
-    date_posted = db.Column(db.DateTime, nullable = False, default= datetime.utcnow)
+    date_posted = db.Column(db.DateTime, nullable = False, default= datetime.today)
 
     content = db.Column(db.Text, nullable = False)
 
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable = False)
+
     # get the user id from User model
     # foreign key is referencing the table and column name from User, which will automatically set the id from User model to lower case.
 

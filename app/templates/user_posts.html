@@ -1,0 +1,46 @@
+<!--inherits the boilderplate code from layout.html-->
+{% extends "layout.html" %}
+<!-- Basically we are overriding the layout.html's block content block from posting what we want within the blocks-->
+{% block content %}
+    <div class="content-section">
+        <a href="{{url_for('new_post')}}" class="btn btn-outline-primary btn-block text-left" role="button" aria-disabled="true">Create Post</a>
+    </div>
+
+    <!--Added this h1 class to show the number of posts by the user-->
+
+    <h1 class = "mb -3">Posts by {{ user.username }} ({{ posts.total }})</h1>
+    {% for post in posts.items %}       <!--the reason we use post.items is because it is now a pagination obj, thus we need to use post.items to get it's elements-->
+    <article class="media content-section">
+        <img class="rounded-circle article-img" src="{{ url_for('static', filename = 'profile_pics/' + post.author.image_file) }}">
+        <div class="media-body">
+          <div class="article-metadata">
+            <a class="mr-2" href="{{url_for('user_posts', username = post.author.username)}}">{{ post.author.username}}</a>
+            <small class="text-muted">{{ post.date_posted.strftime('%Y-%m-%d') }}</small>
+          </div>
+        <h2><a class="article-title" href="{{url_for('post', post_id = post.id)}}">{{ post.title }}</a></h2>
+        <p class="article-content"><a class="article-title" href="{{url_for('post', post_id = post.id)}}">{{ post.content }}</a></p>
+        </div>
+        </article>
+    {% endfor %}        <!--end tag for jinja  -->
+
+
+
+    <!--left_edge: num of pages of the left pagniation
+        right_edge: num of pages showing up at the right side of pages
+        left_current: pages showing up left of current pages
+        right_current: pages showing up right of current pages
+        -->
+    {% for page_num in posts.iter_pages(left_edge = 1, right_edge =1, left_current=1, right_current =2) %}
+        {% if page_num %}   <!--if page_num is not None-->
+            {% if posts.page == page_num %} <!--if page_num is the current page-->
+                <a class = "btn btn-info mb-4" href = "{{url_for('user_posts',username= username, page = page_num)}}">{{ page_num }}</a>
+            {% else %}
+                <a class = "btn btn-outline-info mb-4" href = "{{url_for('user_posts',username= username,  page = page_num)}}">{{ page_num }}</a>
+            {% endif %}
+        {% else %}              <!--if page_num is None-->
+        ...
+        {% endif %}
+    {% endfor %}
+
+
+{% endblock content %} -->

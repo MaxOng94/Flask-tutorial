@@ -1,9 +1,9 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed       # for flask to upload files (in our case we want image extensions file). FileAllowed --> restrict to .jpg or .png
-from wtforms import StringField, PasswordField, BooleanField,SubmitField
+from wtforms import StringField, PasswordField, BooleanField,SubmitField, TextAreaField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
-from models import User
 from flask_login import current_user
+from models import User
 
 # class for registration form. We can inherit from FlaskForm class from flask_wtf
 class RegistrationForm(FlaskForm):
@@ -78,3 +78,13 @@ class UpdateAccountForm(FlaskForm):
             # if user is none, the validationerror will not be raised
             if user:
                 raise ValidationError("That email is taken. Please choose a different one.")
+
+
+
+class PostForm(FlaskForm):
+    title = StringField('Title',
+                        validators = [DataRequired()])
+    content = TextAreaField('Content',
+                        validators = [DataRequired()])
+
+    submit = SubmitField('Post')
