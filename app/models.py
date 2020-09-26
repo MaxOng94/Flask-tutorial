@@ -1,6 +1,7 @@
-from app import db, login_manager
+from app import db, login_manager, app_obj
 from datetime import datetime
 from flask_login import UserMixin
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
 
 @login_manager.user_loader
@@ -17,7 +18,7 @@ class User(db.Model, UserMixin): # what is db.Model?
 
     email = db.Column(db.String(120), unique = True, nullable =False)
 
-    image_file = db.Column(db.String(20), nullable =False, default = 'images.jpg')
+    image_file = db.Column(db.String(20), nullable=False, default ='default(1).jpg')
 
     password = db.Column(db.String(60), nullable=False)
     # hashing algorithm will hash the password into 60 chars, does not mean we want password to be 60 chars
@@ -28,6 +29,18 @@ class User(db.Model, UserMixin): # what is db.Model?
     # attribute to get user who created the post
     # lazy justifies when sqlalchemy load data from db, and sqlalchemy will load the data at one go.
 
+    def get_reset_token(self, expires_sec= 1800):
+        s = Serializer(app_obj.config['SECRET_KEY'], expires_sec)
+        return s.dumps({"user_id": self.id}).decode('utf-8')
+
+    @staticmethod
+    def verify_reset_token(token):
+        s = Serializer(app_obj.config['SECRET_KEY'])
+        try:
+            user_id = s.loads(token)['user_id']
+        except:
+            return None
+        return User.query.get(user_id)
 
     def __repr__(self):     # similar to __str__, how the obj is printed when we print the obj out
         return f"User('{self.username}','{self.email}','{self.image_file}')"
@@ -42,7 +55,7 @@ class Post(db.Model):
 
     content = db.Column(db.Text, nullable = False)
 
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable = False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable = False)
 
     # get the user id from User model
     # foreign key is referencing the table and column name from User, which will automatically set the id from User model to lower case.
