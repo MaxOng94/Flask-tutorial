@@ -31,3 +31,9 @@ Main conceptual takeaways:
 - Project layout
 - Virtual environment
 - Version control
+
+Tutorial link: 
+https://www.youtube.com/watch?v=MwZwr5Tvyxo&list=PL-osiE80TeTs4UjLw5MM6OjgkjFeUxCYH
+
+Flask documentation: 
+https://flask.palletsprojects.com/en/1.1.x/
